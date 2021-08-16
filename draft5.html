@@ -144,7 +144,33 @@ function draw(){
 
 		// Add to list of intersects
 		intersects.push(closestIntersect);
+	}
 
+		// 50 RAYS IN ALL DIRECTIONS
+	for(var angle=0;angle<Math.PI*2;angle+=(Math.PI*2)/30){
+
+		// Calculate dx & dy from angle
+		var dx = Math.cos(angle);
+		var dy = Math.sin(angle);
+
+		// Ray from center of screen to mouse
+		var ray = {
+			a:{x:Mouse.x,y:Mouse.y},
+			b:{x:Mouse.x+dx,y:Mouse.y+dy}
+		};
+
+		// Find CLOSEST intersection
+		var closestIntersect = null;
+		for(var i=0;i<segments.length;i++){
+			var intersect = getIntersection(ray,segments[i]);
+			if(!intersect) continue;
+			if(!closestIntersect || intersect.param<closestIntersect.param){
+				closestIntersect=intersect;
+			}
+		}
+
+		// Add to list of intersects
+		intersects.push(closestIntersect);
 	}
 
 	// Sort intersects by angle
@@ -155,10 +181,12 @@ function draw(){
 	// DRAW AS A GIANT POLYGON
 	ctx.fillStyle = "#dd3838";
 	ctx.beginPath();
-	ctx.moveTo(intersects[0].x,intersects[0].y);
+	var start = findAdjust(Mouse.x,Mouse.y,intersects[0].x,intersects[0].y);
+	ctx.moveTo(start.x,start.y);
 	for(var i=1;i<intersects.length;i++){
 		var intersect = intersects[i];
-		ctx.lineTo(intersect.x,intersect.y);
+		adjust = findAdjust(Mouse.x,Mouse.y,intersect.x,intersect.y);
+		ctx.lineTo(adjust.x,adjust.y);
 	}
 	ctx.fill();
 
@@ -168,10 +196,24 @@ function draw(){
 		var intersect = intersects[i];
 		ctx.beginPath();
 		ctx.moveTo(Mouse.x,Mouse.y);
-		ctx.lineTo(intersect.x,intersect.y);
+		adjust = findAdjust(Mouse.x,Mouse.y,intersect.x,intersect.y);
+		ctx.lineTo(adjust.x,adjust.y);
 		ctx.stroke();
 	}
 
+}
+
+// This function finds endpoint for shorter ray.
+function findAdjust(x1,y1,x2,y2){
+	var actualDistance = Math.sqrt(((x2-x1)**2)+((y2-y1)**2));
+	var preferedDistance = 60;
+	var ratio = preferedDistance/actualDistance;
+	// Shorten unless line intersects within that distance
+	if(ratio>0 && ratio<1){
+		return {x:(1-ratio)*x1+ratio*x2, y:(1-ratio)*y1+ratio*y2};
+	}else{
+		return {x:x2,y:y2};
+	};
 }
 
 // LINE SEGMENTS

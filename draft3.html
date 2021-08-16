@@ -115,10 +115,13 @@ function draw(){
 	// DRAW AS A GIANT POLYGON
 	ctx.fillStyle = "#dd3838";
 	ctx.beginPath();
-	ctx.moveTo(intersects[0].x,intersects[0].y);
+	var start = findAdjust(Mouse.x,Mouse.y,intersects[0].x,intersects[0].y);
+	ctx.moveTo(start.x,start.y);
 	for(var i=1;i<intersects.length;i++){
 		var intersect = intersects[i];
-		ctx.lineTo(intersect.x,intersect.y);
+		// We don't want full length rays.
+		var adjust = findAdjust(Mouse.x,Mouse.y,intersect.x,intersect.y);
+		ctx.lineTo(adjust.x,adjust.y);
 	}
 	ctx.fill();
 
@@ -128,11 +131,32 @@ function draw(){
 		var intersect = intersects[i];
 		ctx.beginPath();
 		ctx.moveTo(Mouse.x,Mouse.y);
-		ctx.lineTo(intersect.x,intersect.y);
+		adjust = findAdjust(Mouse.x,Mouse.y,intersect.x,intersect.y);
+		ctx.lineTo(adjust.x,adjust.y);
 		ctx.stroke();
 	}
+	ctx.beginPath();
+	ctx.arc(Mouse.x, Mouse.y, 20, 0, 2 * Math.PI);
+	ctx.fillStyle = "#003838";
+	ctx.fill();
+	ctx.stroke();
 
 }
+
+// This function finds endpoint for shorter ray.
+function findAdjust(x1,y1,x2,y2){
+	var actualDistance = Math.sqrt(((x2-x1)**2)+((y2-y1)**2));
+	var preferedDistance = 60;
+	var ratio = preferedDistance/actualDistance;
+	// Shorten unless line intersects within that distance
+	if(ratio>0 && ratio<1){
+		return {x:(1-ratio)*x1+ratio*x2, y:(1-ratio)*y1+ratio*y2};
+	}else{
+		return {x:x2,y:y2};
+	};
+}
+
+
 
 // LINE SEGMENTS
 var segments = [

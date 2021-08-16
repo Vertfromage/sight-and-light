@@ -103,7 +103,11 @@ function draw(){
 	ctx.strokeStyle = "#dd3838";
 	ctx.beginPath();
 	ctx.moveTo(320,180);
-	ctx.lineTo(intersect.x,intersect.y);
+	
+	// We don't want full length rays.
+	var adjust = findAdjust(320,180,intersect.x,intersect.y);
+
+	ctx.lineTo(adjust.x,adjust.y);
 	ctx.stroke();
 	
 	// Draw red dot
@@ -111,8 +115,19 @@ function draw(){
 	ctx.beginPath();
     ctx.arc(intersect.x, intersect.y, 4, 0, 2*Math.PI, false);
     ctx.fill();
+}
 
-
+// This function finds endpoint for shorter ray.
+function findAdjust(x1,y1,x2,y2){
+	var actualDistance = Math.sqrt(((x2-x1)**2)+((y2-y1)**2));
+	var preferedDistance = 100;
+	var ratio = preferedDistance/actualDistance;
+	// Shorten unless line intersects within that distance
+	if(ratio>0 && ratio<1){
+		return {x:(1-ratio)*x1+ratio*x2, y:(1-ratio)*y1+ratio*y2};
+	}else{
+		return {x:x2,y:y2};
+	};
 }
 
 // LINE SEGMENTS
